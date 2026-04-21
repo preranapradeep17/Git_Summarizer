@@ -1,4 +1,4 @@
-# RepoExplainer — AI-Powered GitHub Repository Explainer
+# GitExplainer-2 — AI-Powered GitHub Repository Explainer
 
 > Drop a GitHub link. Get architecture breakdowns, code explanations, dependency analysis, and an interactive Q&A — all powered by CodeBERT + FAISS + RAG + MCP.
 
@@ -51,30 +51,30 @@ GitHub URL
 
 ## Setup
 
-### 1. Clone / navigate to the project
+### 1. Navigate to the project
 ```bash
-cd repo-explainer
+cd GitExplainer-2
 ```
 
-### 2. Create virtual environment
+### 2. Create virtual environment (recommended)
 ```bash
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 ### 3. Configure environment
 ```bash
-cp .env.example .env
-# Edit .env — add GROQ_API_KEY and optionally GITHUB_TOKEN
+cp sample_env.txt .env
+# Edit .env — set GROQ_API_KEY (required), optionally GITHUB_TOKEN, SECRET_KEY
 ```
 
 ### 4. Run
 ```bash
-chmod +x run.sh
-./run.sh
+./run.sh   # chmod +x if needed
 ```
 
-Then open **http://localhost:5000**
+Open **http://localhost:5001**
 
 ---
 
@@ -90,18 +90,25 @@ Then open **http://localhost:5000**
 ## Project Structure
 
 ```
-repo-explainer/
-├── app.py                    # Flask application + API routes
-├── orchestrator.py           # Full pipeline coordinator + session cache
+GitExplainer-2/
+├── app.py                    # Flask application + API routes (/analyze, /query, /explain, /status)
+├── orchestrator.py           # Pipeline coordinator + session cache (cache/)
 ├── requirements.txt
 ├── run.sh
-├── .env.example
+├── .env                      # Config: GROQ_API_KEY, GITHUB_TOKEN, SECRET_KEY
+├── sample_env.txt            # Template for .env
+├── TODO.md                   # Development tasks
+├── test_issues.py            # Issue testing utilities
+│
+├── cache/                    # Session embeddings (*.pkl)
 │
 ├── mcp_server/
-│   ├── github_tools.py       # MCP server: fetch_repository, list_files, read_file
-│   └── client.py             # MCP client wrapper (sync)
+│   ├── __init__.py
+│   ├── client.py             # MCP client wrapper
+│   └── github_tools.py       # MCP server: fetch_repository, list_files, read_file, get_issues
 │
 ├── pipeline/
+│   ├── __init__.py
 │   ├── preprocessor.py       # Filter, clean, detect tech stack
 │   ├── parser.py             # Tree-sitter AST + regex chunker
 │   ├── embedder.py           # CodeBERT embeddings + FAISS index
@@ -111,18 +118,21 @@ repo-explainer/
 │   └── index.html            # Dark-themed frontend
 │
 └── static/
-    ├── css/style.css
-    └── js/app.js
+    ├── css/
+    │   └── style.css
+    └── js/
+        └── app.js
 ```
+
 
 ## Features
 
-- **MCP-based GitHub access** — structured tool calls via Model Context Protocol
-- **Tree-sitter AST parsing** — semantically accurate code chunking for Python + JS
-- **CodeBERT embeddings** — code-aware 768-dim vectors (not generic text embeddings)
-- **FAISS cosine search** — sub-millisecond retrieval over thousands of chunks
-- **RAG + Groq LLaMA** — grounded, citation-backed code explanations
-- **Session caching** — re-analyzing the same repo loads from disk instantly
-- **Interactive Q&A** — ask anything about the codebase
-- **File-level explanation** — click any file for an LLM-generated module breakdown
-- **Dependency analysis** — extracted import graphs across all source files
+- **MCP-based GitHub access** — structured tool calls via Model Context Protocol (repo fetch, files, issues)
+- **Tree-sitter AST parsing** — semantically accurate code chunking (Python/JS)
+- **CodeBERT embeddings** — code-aware vectors + FAISS index
+- **RAG + Groq** — grounded explanations with citations
+- **GitHub issues** — top issues fetched & searchable in RAG
+- **Session caching** — instant reloads from cache/
+- **Interactive Q&A** — codebase + issues queries
+- **File explanations** — LLM breakdowns per file
+- **Dependency & tech stack analysis** — imports graph, detected stack

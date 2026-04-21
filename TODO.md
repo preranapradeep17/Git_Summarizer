@@ -1,10 +1,10 @@
-# GitHub Issues Integration TODO
+# GitExplainer-2 README Update - TODO
 
-## Plan Steps:
-1. ✅ [DONE] Create TODO.md with steps
-2. ✅ [DONE] Edit mcp_server/github_tools.py: Add fetch_issues function and tool
-3. ✅ [DONE] Edit mcp_server/client.py: Add get_issues method
-4. ✅ [DONE] Edit orchestrator.py: Add self.issues, fetch after metadata, optional chunking
-5. ✅ [DONE] Edit app.py: Add issues preview to /api/status
-6. [ ] Test integration
-7. ✅ [DONE] All core edits complete - ready for testing
+## Steps (Approved Plan)
+- [x] Step 1: Create TODO.md to track progress (done).
+- [x] Step 2: Update README.md with renamed title, corrected paths/setup (use cache/, sample_env.txt -> .env, port 5001), exact project structure, added issues feature.
+- [x] Step 3: Verified update (README.md now matches project: GitExplainer-2, setup with sample_env.txt/.env/port 5001, structure, issues feature).
+- [x] Step 4: Task complete.
+
+All steps complete ✅
+
