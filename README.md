@@ -12,40 +12,42 @@ GitHub URL
     ▼
 ┌─────────────────────────────────────────────────────┐
 │                   MCP Server                         │
-│  fetch_repository() → list_files() → read_file()   │
+│ fetch_repository() → list_files() → read_file()     │
+│ → fetch_issues()                                    │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
 │               Preprocessing Pipeline                 │
-│  Filter noise → Fetch content → Detect tech stack  │
+│ Filter files → Clean content → Detect tech stack    │
+│ + Process GitHub issues                             │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
 │              AST Parser + Chunker                    │
-│  Tree-sitter (Python/JS) → Regex fallback           │
-│  → Functions / Classes / Segments                   │
+│ Tree-sitter (Python/JS) → Regex fallback            │
+│ → Functions / Classes / Issue chunks                │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│         CodeBERT Embeddings + FAISS Index            │
-│  microsoft/codebert-base → 768-dim vectors          │
-│  IndexFlatIP (cosine similarity)                    │
+│        MiniLM Embeddings + FAISS Index               │
+│ all-MiniLM-L6-v2 → 384-dim vectors                  │
+│ Code + Issues unified embedding space               │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
 │              RAG Query Engine (Groq)                 │
-│  Query → embed → retrieve top-k → LLM explain      │
+│ Query → embed → retrieve (code + issues) → LLM      │
 └──────────────────────┬──────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────┐
 │              Flask Frontend                          │
-│  Dark UI · Project overview · Q&A chat              │
-│  File explorer · Dependency graph · Tech stack      │
+│ Project overview · Issues · Q&A chat                │
+│ Dependency graph · Tech stack                       │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -53,7 +55,7 @@ GitHub URL
 
 ### 1. Clone / navigate to the project
 ```bash
-cd repo-explainer
+cd GitExplainer-2
 ```
 
 ### 2. Create virtual environment
@@ -74,7 +76,7 @@ chmod +x run.sh
 ./run.sh
 ```
 
-Then open **http://localhost:5000**
+Then open **http://localhost:5001**
 
 ---
 
@@ -90,25 +92,26 @@ Then open **http://localhost:5000**
 ## Project Structure
 
 ```
-repo-explainer/
-├── app.py                    # Flask application + API routes
-├── orchestrator.py           # Full pipeline coordinator + session cache
+GitExplainer-2/
+├── app.py                    # Flask API routes
+├── orchestrator.py           # Pipeline coordinator + caching + issues
 ├── requirements.txt
 ├── run.sh
-├── .env.example
+├── .env
+├── cache/                    # Saved FAISS indexes
 │
 ├── mcp_server/
-│   ├── github_tools.py       # MCP server: fetch_repository, list_files, read_file
-│   └── client.py             # MCP client wrapper (sync)
+│   ├── client.py
+│   └── github_tools.py       # MCP tools (repo, files, issues)
 │
 ├── pipeline/
-│   ├── preprocessor.py       # Filter, clean, detect tech stack
-│   ├── parser.py             # Tree-sitter AST + regex chunker
-│   ├── embedder.py           # CodeBERT embeddings + FAISS index
-│   └── rag_engine.py         # RAG query + Groq LLM generation
+│   ├── preprocessor.py       # File + issue preprocessing
+│   ├── parser.py             # AST + regex chunking
+│   ├── embedder.py           # MiniLM embeddings + FAISS
+│   └── rag_engine.py         # RAG + Groq LLM
 │
 ├── templates/
-│   └── index.html            # Dark-themed frontend
+│   └── index.html
 │
 └── static/
     ├── css/style.css
@@ -117,12 +120,15 @@ repo-explainer/
 
 ## Features
 
-- **MCP-based GitHub access** — structured tool calls via Model Context Protocol
-- **Tree-sitter AST parsing** — semantically accurate code chunking for Python + JS
-- **CodeBERT embeddings** — code-aware 768-dim vectors (not generic text embeddings)
-- **FAISS cosine search** — sub-millisecond retrieval over thousands of chunks
-- **RAG + Groq LLaMA** — grounded, citation-backed code explanations
-- **Session caching** — re-analyzing the same repo loads from disk instantly
-- **Interactive Q&A** — ask anything about the codebase
-- **File-level explanation** — click any file for an LLM-generated module breakdown
-- **Dependency analysis** — extracted import graphs across all source files
+* MCP-based GitHub access — structured tool calls for repo, files, and issues
+* Tree-sitter AST parsing — accurate code structure extraction (Python/JS)
+* Regex fallback — supports additional languages
+* MiniLM embeddings (384-dim) — fast and efficient semantic search
+* FAISS indexing — high-speed similarity retrieval
+* RAG + Groq (LLaMA 3.3) — grounded, context-aware explanations
+* GitHub Issues Integration — bug and feature awareness
+* Unified retrieval — code and issues processed together
+* Session caching — avoids re-embedding for faster reuse
+* Interactive Q&A — ask anything about the repository
+* File-level explanations — module breakdowns
+* Dependency & tech stack analysis
